@@ -30,22 +30,30 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         if (request.getServletPath().equals("/api/login") || request.getServletPath().equals("/api/refresh-token")) {
+            // kiểm tra xem path có trùng với /api/login hay /api/refresh-token
+            // cho phép req, res vượt qua filter chain
             filterChain.doFilter(request, response);
             return;
         }
         String authorizationHeader = request.getHeader(AUTHORIZATION);
+        // kiểm tra header có key Authorization và giá trị phải bắt đầu bằng "Bearer "
         if (authorizationHeader != null && authorizationHeader.startsWith(TOKEN_PREFIX)) {
             try {
+                // lấy token từ header key Authorization
                 String token = authorizationHeader.substring(TOKEN_PREFIX.length());
                 Algorithm algorithm = Algorithm.HMAC256(SECRET_KEY.getBytes());
                 JWTVerifier verifier = JWT.require(algorithm).build();
+                // decoded token
                 DecodedJWT decodedJWT = verifier.verify(token);
+                // lấy username và roles từ subject và claim của token
                 String username = decodedJWT.getSubject();
                 String[] roles = decodedJWT.getClaim("roles").asArray(String.class);
                 Collection<SimpleGrantedAuthority> authorities = new ArrayList<>();
                 stream(roles).forEach(role -> authorities.add(new SimpleGrantedAuthority(role)));
+                // tạo UsernamePasswordAuthenticationToken từ usename và roles, không truyền password
                 UsernamePasswordAuthenticationToken authenticationToken
                         = new UsernamePasswordAuthenticationToken(username, null, authorities);
+                // setAuthentication cho Security context
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
                 filterChain.doFilter(request, response);
             } catch (Exception exception) {
@@ -57,6 +65,7 @@ public class CustomAuthorizationFilter extends OncePerRequestFilter {
                 new ObjectMapper().writeValue(response.getOutputStream(), errorResponseDTO);
             }
         } else {
+            // nếu không có key Authorization hay value của key không đúng thì tiếp tục cho qua filter chain
             filterChain.doFilter(request, response);
         }
     }

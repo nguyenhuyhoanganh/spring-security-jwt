@@ -13,6 +13,12 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+//import org.springframework.web.cors.CorsConfiguration;
+//import org.springframework.web.cors.CorsConfigurationSource;
+//
+//import javax.servlet.http.HttpServletRequest;
+//import java.util.Arrays;
+//import java.util.Collections;
 
 @Configuration
 @EnableWebSecurity
@@ -33,6 +39,19 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManagerBean());
         customAuthenticationFilter.setFilterProcessesUrl("/api/login");
 
+//        http.cors().configurationSource(new CorsConfigurationSource() {
+//                    @Override
+//                    public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
+//                        CorsConfiguration config = new CorsConfiguration();
+//                        config.setAllowedOrigins(Collections.singletonList("http://localhost:3000"));
+//                        config.setAllowedMethods(Collections.singletonList("*"));
+//                        config.setAllowCredentials(true);
+//                        config.setAllowedHeaders(Collections.singletonList("*"));
+//                        config.setExposedHeaders(Arrays.asList("Authorization"));
+//                        config.setMaxAge(3600L);
+//                        return config;
+//                    }
+//                });
         http.csrf().disable();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
         // STATELESS: ngăn chặn tạo JSESSIONID và không cho spring security sử dụng JSESSIONID để lấy SecurityContext
